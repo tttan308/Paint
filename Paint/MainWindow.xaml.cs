@@ -8,10 +8,10 @@ using System.Windows;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using System.Windows.Input;
 
 namespace Paint
 {
@@ -25,9 +25,17 @@ namespace Paint
             InitializeComponent();
         }
 
-        
+
         ShapeFactory _factory;
-        private System.Windows.Controls.Button _selectedButton = null;
+        bool isDrawing = false;
+        Point _start;
+        Point _end;
+        string _choice;
+        List<IShape> _shapes = new List<IShape>();
+        System.Windows.Controls.Button _selectedButton = null;
+        private Image importedImage = null;
+        private bool isSaved = false;
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var abilities = new List<IShape>();
@@ -55,7 +63,7 @@ namespace Paint
             }
 
             _factory = new ShapeFactory();
-            
+
             foreach (var ability in abilities)
             {
                 _factory.Prototypes.Add(
@@ -68,15 +76,32 @@ namespace Paint
             {
                 _choice = abilities[0].Name;
             }
-
+            this.KeyDown += new KeyEventHandler(MainWindow_KeyDown);
         }
 
-        bool isDrawing = false;
-        Point _start;
-        Point _end;
-        string _choice;
-        List<IShape> _shapes = new List<IShape>();
-        List<IShape> _shapesBefore = new List<IShape>();
+        void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Kiểm tra xem phím Ctrl có được giữ không
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                switch (e.Key)
+                {
+                    case Key.N:
+                        createNewButton_Click(sender, e);
+                        break;
+                    case Key.O:
+                        openFileButton_Click(sender, e);
+                        break;
+                    case Key.S:
+                        saveFileButton_Click(sender, e);
+                        break;
+                    case Key.I:
+                        importImageButton_Click(sender, e);
+                        break;
+                }
+            }
+        }
+
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             isDrawing = true;
@@ -85,6 +110,7 @@ namespace Paint
             IShape newShape = _factory.Create(_choice);
             newShape.Points.Add(_start);
             _shapes.Add(newShape);
+            isSaved = false;
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
@@ -108,7 +134,7 @@ namespace Paint
                 RedrawCanvas();
             }
         }
-
+        
         private void RedrawCanvas()
         {
             // Xóa tất cả ngoại trừ hình ảnh đã import
@@ -125,13 +151,12 @@ namespace Paint
             }
         }
 
-
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             isDrawing = false;
             if (_selectedButton != null)
             {
-                _selectedButton.Background = Brushes.LightGray; 
+                _selectedButton.Background = Brushes.LightGray;
                 _selectedButton = null;
             }
         }
@@ -143,12 +168,11 @@ namespace Paint
 
         private void doYouWantToSave(object sender, RoutedEventArgs e)
         {
-            if (IsCanvasEmpty() || isSaved == true)
+            if (IsCanvasEmpty() || isSaved)
             {
                 importedImage = null;
                 _shapes.Clear();
                 drawingCanvas.Children.Clear();
-                isSaved= false;
             }
             else
             {
@@ -169,17 +193,13 @@ namespace Paint
                         break;
                 }
             }
-        }       
+        }
 
         private void createNewButton_Click(object sender, RoutedEventArgs e)
         {
-           doYouWantToSave(sender, e);
+             doYouWantToSave(sender, e);
         }
 
-
-        private Image importedImage = null;
-
-        
         private void LoadImageToCanvas(string filePath)
         {
             BitmapImage bitmapImage = new BitmapImage();
@@ -193,7 +213,7 @@ namespace Paint
             drawingCanvas.Children.Clear();
             drawingCanvas.Children.Add(importedImage);
 
-    
+
             var window = GetWindow(this);
             canvas.Width = window.Width;
             canvas.Height = window.Height;
@@ -202,14 +222,14 @@ namespace Paint
 
         private void openFileButton_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
 
-            if (openFileDialog.ShowDialog() == true)
-            { 
-                doYouWantToSave(sender, e);
-                LoadImageToCanvas(openFileDialog.FileName);
-            }
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    doYouWantToSave(sender, e);
+                    LoadImageToCanvas(openFileDialog.FileName);
+                }
         }
 
         private void SaveCanvasAsPng(Canvas canvas, string filePath)
@@ -245,26 +265,34 @@ namespace Paint
             }
         }
 
-        private bool isSaved = false;
         private void saveFileButton_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PNG Files (*.png)|*.png";
-            if (saveFileDialog.ShowDialog() == true)
+            if (!isSaved)
             {
-                SaveCanvasAsPng(drawingCanvas, saveFileDialog.FileName);
-                isSaved = true;
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "PNG Files (*.png)|*.png";
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    SaveCanvasAsPng(drawingCanvas, saveFileDialog.FileName);
+                    isSaved = true;
+                }
+            }
+            else
+            {
+                MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
             }
         }
 
-        private void importButton_Click(object sender, RoutedEventArgs e)
+        private void importImageButton_Click(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All Files (*.*)|*.*";
 
-        }
-
-        private void exportButton_Click(object sender, RoutedEventArgs e)
-        {
-
+            if (openFileDialog.ShowDialog() == true)
+            {
+                doYouWantToSave(sender, e); // Optional: Check if the user wants to save current work
+                LoadImageToCanvas(openFileDialog.FileName);
+            }
         }
 
         private void iconListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -284,6 +312,16 @@ namespace Paint
                 canvas.Width = e.NewSize.Width;
                 canvas.Height = e.NewSize.Height;
             }
+        }
+
+        private void openFileButton_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void layersButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

@@ -1,0 +1,3 @@
+Test save file:
+- Nếu file hiện tại đã được lưu trước đó -> save lại sẽ không hỏi.
+- 

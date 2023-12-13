@@ -18,23 +18,24 @@
                 <Fluent:ApplicationMenu Header="File" RightPaneWidth="0" FontSize="16">
                     <Fluent:MenuItem Header="New" Icon="imgs/new-document.png" Name="createNewButton" Click="createNewButton_Click"
                      Style="{StaticResource CompactMenuItemStyle}"
-                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="                          Ctrl+N"/>
                     <Fluent:MenuItem Header="Open" Icon="imgs/folder.png" Name="openFileButton" Click="openFileButton_Click"
                      Style="{StaticResource CompactMenuItemStyle}"
-                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="                         Ctrl+O"/>
                     <Fluent:MenuItem Header="Save" Icon="imgs/save.png" Name="saveFileButton" Click="saveFileButton_Click"
                      Style="{StaticResource CompactMenuItemStyle}"                 
-                                     RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <Fluent:MenuItem Header="Import" Icon="imgs/import.png" Name="importButton" Click="importButton_Click"
+                                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="                        Ctrl+S"/>
+                    <Fluent:MenuItem Header="Import Image" Icon="imgs/import.png" Name="importButton" Click="importImageButton_Click"
                      Style="{StaticResource CompactMenuItemStyle}"
-                                     RenderOptions.BitmapScalingMode="HighQuality"/>
-                    <Fluent:MenuItem Header="Export" Icon="imgs/export.png" Name="exportButton" Click="exportButton_Click"
-                     Style="{StaticResource CompactMenuItemStyle}" 
-                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="               Ctrl+I"/>
                 </Fluent:ApplicationMenu>
             </Fluent:Ribbon.Menu>
 
-            <Fluent:RibbonTabItem Header="Home">
+            <Fluent:RibbonTabItem Header="Home" FontSize="16">
                 <Fluent:RibbonGroupBox Header="Shapes">
                     <ListView Name="iconListView" Width="130" Height="40" Margin="8,8,8,0" SelectionChanged="iconListView_SelectionChanged"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -58,6 +59,13 @@
                     </ListView>
                 </Fluent:RibbonGroupBox>
 
+                <Fluent:RibbonGroupBox Header="Layers">
+                    <Fluent:Button Name="layersButton" Padding="4,4,4,0" Margin="0,0,0,18" Click="layersButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="imgs/layers.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                </Fluent:RibbonGroupBox>
             </Fluent:RibbonTabItem>
         </Fluent:Ribbon>
         <Grid>

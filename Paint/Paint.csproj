@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="imgs\layers.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Fluent.Ribbon" Version="10.0.4" />
   </ItemGroup>
 
@@ -17,9 +21,9 @@
 
   <ItemGroup>
     <Resource Include="imgs\Ellipse.png" />
-    <Resource Include="imgs\export.png" />
     <Resource Include="imgs\folder.png" />
     <Resource Include="imgs\import.png" />
+    <Resource Include="imgs\layers.png" />
     <Resource Include="imgs\Line.png" />
     <Resource Include="imgs\new-document.png" />
     <Resource Include="imgs\Rectangle.png" />
