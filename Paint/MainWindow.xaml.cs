@@ -1,30 +1,33 @@
 ﻿using MyLib;
-using System;
+using Fluent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using System;
 using System.Windows;
-using System.Windows.Controls;
+using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Media.Imaging;
+using System.Windows.Controls;
+using Microsoft.Win32;
 
 namespace Paint
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : RibbonWindow
     {
         public MainWindow()
         {
             InitializeComponent();
         }
 
+        
         ShapeFactory _factory;
-        private Button _selectedButton = null;
-
+        private System.Windows.Controls.Button _selectedButton = null;
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var abilities = new List<IShape>();
@@ -52,157 +55,234 @@ namespace Paint
             }
 
             _factory = new ShapeFactory();
-            /*foreach (var ability in abilities)
-            {
-                _factory.Prototypes.Add(
-                    ability.Name, ability
-                );
-
-                var button = new Button()
-                {
-                    Width = 80,
-                    Height = 35,
-                    Content = ability.Name,
-                    Tag = ability.Name
-                };
-                button.Click += (sender, args) =>
-                {
-                    var control = (Button)sender;
-                    _choice = (string)control.Tag;
-                };
-                actionsStackPanel.Children.Add(button);
-            };*/
-
+            
             foreach (var ability in abilities)
             {
                 _factory.Prototypes.Add(
-                    ability.Name, ability
-                );
-                var button = new Button()
-                {
-                    Width = 50,
-                    Height = 50,
-                    Tag = ability.Name
-                };
-
-                // Tạo Canvas để chứa shape
-                var canvas = new Canvas()
-                {
-                    Width = 80,
-                    Height = 50
-                };
-
-                // Tạo và cấu hình shape dựa trên loại shape
-                UIElement shapeElement;
-                switch (ability.Name)
-                {
-                    case "Line":
-                        shapeElement = new Line
-                        {
-                            X1 = 0,
-                            Y1 = 0,
-                            X2 = 60,
-                            Y2 = 60,
-                            Stroke = Brushes.Red,
-                            StrokeThickness = 3
-                        };
-                        break;
-                    case "Rectangle":
-                        shapeElement = new Rectangle
-                        {
-                            Width = 40,
-                            Height = 30,
-                            Stroke = Brushes.Red,
-                            StrokeThickness = 3
-                        };
-                        break;
-                    case "Ellipse":
-                        shapeElement = new Ellipse
-                        {
-                            Width = 40,
-                            Height = 30,
-                            Stroke = Brushes.Red,
-                            StrokeThickness = 3
-                        };
-                        break;
-                    default:
-                        throw new NotImplementedException("Shape not implemented");
-                }
-
-                canvas.Children.Add(shapeElement);
-
-                // Đặt canvas làm content của button
-                button.Content = canvas;
-
-                button.Click += (sender, args) =>
-                {
-                    if (_selectedButton != null)
-                    {
-                        _selectedButton.Background = Brushes.LightGray;
-                    }
-                    var control = (Button)sender;
-                    _choice = (string)control.Tag;
-                    control.Background = Brushes.LightGray; 
-                    _selectedButton = control;
-                };
-
-                actionsStackPanel.Children.Add(button);
-            };
+                     ability.Name, ability
+                 );
+            }
+            iconListView.ItemsSource = _factory.Prototypes.Values.ToList();
 
             if (abilities.Count > 0)
             {
                 _choice = abilities[0].Name;
             }
+
         }
 
         bool isDrawing = false;
         Point _start;
         Point _end;
-        string _choice; // Line
+        string _choice;
         List<IShape> _shapes = new List<IShape>();
-
+        List<IShape> _shapesBefore = new List<IShape>();
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             isDrawing = true;
             _start = e.GetPosition(drawingCanvas);
+
+            IShape newShape = _factory.Create(_choice);
+            newShape.Points.Add(_start);
+            _shapes.Add(newShape);
         }
 
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDrawing)
+            if (isDrawing && _shapes.Any())
             {
                 _end = e.GetPosition(drawingCanvas);
 
                 Title = $"{_start.X}, {_start.Y} => {_end.X}, {_end.Y}";
 
-                IShape preview = _factory.Create(_choice);
-                preview.Points.Add(_start);
-                preview.Points.Add(_end);
-
-                drawingCanvas.Children.Clear();
-
-                foreach (var shape in _shapes)
+                var currentShape = _shapes.Last();
+                if (currentShape.Points.Count == 2)
                 {
-                    drawingCanvas.Children.Add(shape.Draw());
+                    currentShape.Points[1] = _end;
+                }
+                else
+                {
+                    currentShape.Points.Add(_end);
                 }
 
-                drawingCanvas.Children.Add(preview.Draw());
+                RedrawCanvas();
             }
         }
 
+        private void RedrawCanvas()
+        {
+            // Xóa tất cả ngoại trừ hình ảnh đã import
+            drawingCanvas.Children.Clear();
+            if (importedImage != null)
+            {
+                drawingCanvas.Children.Add(importedImage);
+            }
+
+            // Vẽ lại các hình dạng
+            foreach (var shape in _shapes)
+            {
+                drawingCanvas.Children.Add(shape.Draw());
+            }
+        }
+
+
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            IShape shape = _factory.Create(_choice);
-            shape.Points.Add(_start);
-            shape.Points.Add(_end);
-
-            _shapes.Add(shape);
-
             isDrawing = false;
             if (_selectedButton != null)
             {
-                _selectedButton.Background = Brushes.LightGray; // Giả sử màu nền ban đầu là trắng
+                _selectedButton.Background = Brushes.LightGray; 
                 _selectedButton = null;
+            }
+        }
+
+        private bool IsCanvasEmpty()
+        {
+            return drawingCanvas.Children.Count == 0 || (drawingCanvas.Children.Count == 1 && importedImage != null);
+        }
+
+        private void doYouWantToSave(object sender, RoutedEventArgs e)
+        {
+            if (IsCanvasEmpty() || isSaved == true)
+            {
+                importedImage = null;
+                _shapes.Clear();
+                drawingCanvas.Children.Clear();
+                isSaved= false;
+            }
+            else
+            {
+                MessageBoxResult result = MessageBox.Show("Do you want to save the current file?", "Save File", MessageBoxButton.YesNoCancel);
+                switch (result)
+                {
+                    case MessageBoxResult.Yes:
+                        saveFileButton_Click(sender, e);
+                        _shapes.Clear();
+                        drawingCanvas.Children.Clear();
+                        break;
+                    case MessageBoxResult.No:
+                        importedImage = null;
+                        _shapes.Clear();
+                        drawingCanvas.Children.Clear();
+                        break;
+                    case MessageBoxResult.Cancel:
+                        break;
+                }
+            }
+        }       
+
+        private void createNewButton_Click(object sender, RoutedEventArgs e)
+        {
+           doYouWantToSave(sender, e);
+        }
+
+
+        private Image importedImage = null;
+
+        
+        private void LoadImageToCanvas(string filePath)
+        {
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.UriSource = new Uri(filePath);
+            bitmapImage.EndInit();
+
+            importedImage = new Image();
+            importedImage.Source = bitmapImage;
+
+            drawingCanvas.Children.Clear();
+            drawingCanvas.Children.Add(importedImage);
+
+    
+            var window = GetWindow(this);
+            canvas.Width = window.Width;
+            canvas.Height = window.Height;
+
+        }
+
+        private void openFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
+
+            if (openFileDialog.ShowDialog() == true)
+            { 
+                doYouWantToSave(sender, e);
+                LoadImageToCanvas(openFileDialog.FileName);
+            }
+        }
+
+        private void SaveCanvasAsPng(Canvas canvas, string filePath)
+        {
+            // Tạo một RenderTargetBitmap
+            RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
+                (int)canvas.ActualWidth,
+                (int)canvas.ActualHeight,
+                96d,
+                96d,
+                PixelFormats.Pbgra32);
+
+            // Tạo một VisualBrush từ Canvas
+            VisualBrush visualBrush = new VisualBrush(canvas);
+
+            // Tạo một DrawingVisual và dùng VisualBrush để vẽ nội dung của Canvas
+            DrawingVisual drawingVisual = new DrawingVisual();
+            using (DrawingContext context = drawingVisual.RenderOpen())
+            {
+                context.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(canvas.ActualWidth, canvas.ActualHeight)));
+            }
+
+            // Render DrawingVisual vào RenderTargetBitmap
+            renderBitmap.Render(drawingVisual);
+
+            // Lưu RenderTargetBitmap dưới dạng PNG
+            PngBitmapEncoder encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+            using (FileStream file = File.Create(filePath))
+            {
+                encoder.Save(file);
+            }
+        }
+
+        private bool isSaved = false;
+        private void saveFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "PNG Files (*.png)|*.png";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                SaveCanvasAsPng(drawingCanvas, saveFileDialog.FileName);
+                isSaved = true;
+            }
+        }
+
+        private void importButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void exportButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void iconListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            var shape = iconListView.SelectedItem as IShape;
+            if (shape != null)
+            {
+                _choice = shape.Name;
+            }
+
+        }
+
+        private void RibbonWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (canvas != null)
+            {
+                canvas.Width = e.NewSize.Width;
+                canvas.Height = e.NewSize.Height;
             }
         }
     }

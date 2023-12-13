@@ -1,22 +1,69 @@
-﻿<Window x:Class="Paint.MainWindow"
+﻿<Fluent:RibbonWindow x:Class="Paint.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Paint"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
-        Loaded="Window_Loaded">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="45"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <StackPanel Name="actionsStackPanel" Background="Gray" Orientation="Horizontal">
-        </StackPanel>
-        <Canvas Grid.Row="1" Name="drawingCanvas" Background="White">
-           
-        </Canvas>
-        <Canvas Grid.Row="1" Background="Transparent" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp"></Canvas>
-    </Grid>
-</Window>
+        xmlns:Fluent="clr-namespace:Fluent;assembly=Fluent"
+        Title="Paint" Height="800" Width="1200"
+        Loaded="Window_Loaded"
+        SizeChanged="RibbonWindow_SizeChanged">
+    <Fluent:RibbonWindow.Resources>
+        <Style TargetType="Fluent:MenuItem" x:Key="CompactMenuItemStyle">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </Fluent:RibbonWindow.Resources>
+    <StackPanel>
+        <Fluent:Ribbon>
+            <Fluent:Ribbon.Menu>
+                <Fluent:ApplicationMenu Header="File" RightPaneWidth="0" FontSize="16">
+                    <Fluent:MenuItem Header="New" Icon="imgs/new-document.png" Name="createNewButton" Click="createNewButton_Click"
+                     Style="{StaticResource CompactMenuItemStyle}"
+                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Fluent:MenuItem Header="Open" Icon="imgs/folder.png" Name="openFileButton" Click="openFileButton_Click"
+                     Style="{StaticResource CompactMenuItemStyle}"
+                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Fluent:MenuItem Header="Save" Icon="imgs/save.png" Name="saveFileButton" Click="saveFileButton_Click"
+                     Style="{StaticResource CompactMenuItemStyle}"                 
+                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Fluent:MenuItem Header="Import" Icon="imgs/import.png" Name="importButton" Click="importButton_Click"
+                     Style="{StaticResource CompactMenuItemStyle}"
+                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <Fluent:MenuItem Header="Export" Icon="imgs/export.png" Name="exportButton" Click="exportButton_Click"
+                     Style="{StaticResource CompactMenuItemStyle}" 
+                                     RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Fluent:ApplicationMenu>
+            </Fluent:Ribbon.Menu>
+
+            <Fluent:RibbonTabItem Header="Home">
+                <Fluent:RibbonGroupBox Header="Shapes">
+                    <ListView Name="iconListView" Width="130" Height="40" Margin="8,8,8,0" SelectionChanged="iconListView_SelectionChanged"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding Icon}" Width="25" Height="25" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="ToolTip" Value="{Binding Name}"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                </Fluent:RibbonGroupBox>
+
+            </Fluent:RibbonTabItem>
+        </Fluent:Ribbon>
+        <Grid>
+            <Canvas IsHitTestVisible="False" ClipToBounds="True" Name="drawingCanvas" Background="White"></Canvas>
+            <Canvas Name="canvas" Background="Transparent" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" Height="670" Width="1200">
+            </Canvas>
+        </Grid>
+    </StackPanel>
+</Fluent:RibbonWindow>

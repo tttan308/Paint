@@ -8,7 +8,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Fluent.Ribbon" Version="10.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\IShape\IShape.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="imgs\Ellipse.png" />
+    <Resource Include="imgs\export.png" />
+    <Resource Include="imgs\folder.png" />
+    <Resource Include="imgs\import.png" />
+    <Resource Include="imgs\Line.png" />
+    <Resource Include="imgs\new-document.png" />
+    <Resource Include="imgs\Rectangle.png" />
+    <Resource Include="imgs\save.png" />
   </ItemGroup>
 
 </Project>

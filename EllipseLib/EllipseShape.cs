@@ -2,8 +2,8 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows;
-using MyLib;
 using System;
+using MyLib;
 
 namespace EllipseLib
 {
@@ -38,5 +38,7 @@ namespace EllipseLib
         }
 
         public override string Name => "Ellipse";
+
+        public override string Icon => "imgs/Ellipse.png";
     }
 }

@@ -8,7 +8,7 @@ namespace LineLib
     public class LineShape : IShape
     {
         public override UIElement Draw()
-        {
+        { 
             return new Line()
             {
                 X1 = Points[0].X,
@@ -27,5 +27,6 @@ namespace LineLib
 
         public override string Name => "Line";
 
+        public override string Icon => "imgs/Line.png";
     }
 }
