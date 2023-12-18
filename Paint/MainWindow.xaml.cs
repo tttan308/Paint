@@ -11,7 +11,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls;
 using Microsoft.Win32;
-using System.Windows.Input;
+using System.Xml.Linq;
+using System.Globalization;
+using System.Windows.Data;
 
 namespace Paint
 {
@@ -35,7 +37,6 @@ namespace Paint
         System.Windows.Controls.Button _selectedButton = null;
         private Image importedImage = null;
         private bool isSaved = false;
-
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var abilities = new List<IShape>();
@@ -76,30 +77,6 @@ namespace Paint
             {
                 _choice = abilities[0].Name;
             }
-            this.KeyDown += new KeyEventHandler(MainWindow_KeyDown);
-        }
-
-        void MainWindow_KeyDown(object sender, KeyEventArgs e)
-        {
-            // Kiểm tra xem phím Ctrl có được giữ không
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                switch (e.Key)
-                {
-                    case Key.N:
-                        createNewButton_Click(sender, e);
-                        break;
-                    case Key.O:
-                        openFileButton_Click(sender, e);
-                        break;
-                    case Key.S:
-                        saveFileButton_Click(sender, e);
-                        break;
-                    case Key.I:
-                        importImageButton_Click(sender, e);
-                        break;
-                }
-            }
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -112,7 +89,7 @@ namespace Paint
             _shapes.Add(newShape);
             isSaved = false;
         }
-
+        
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDrawing && _shapes.Any())
@@ -134,7 +111,7 @@ namespace Paint
                 RedrawCanvas();
             }
         }
-        
+
         private void RedrawCanvas()
         {
             // Xóa tất cả ngoại trừ hình ảnh đã import
@@ -154,6 +131,7 @@ namespace Paint
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             isDrawing = false;
+            RedrawCanvas();
             if (_selectedButton != null)
             {
                 _selectedButton.Background = Brushes.LightGray;
@@ -227,10 +205,15 @@ namespace Paint
 
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    doYouWantToSave(sender, e);
+
+                    if(!isSaved)                    doYouWantToSave(sender, e);
                     LoadImageToCanvas(openFileDialog.FileName);
                 }
-        }
+
+            else
+            {
+                MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
+            }        }
 
         private void SaveCanvasAsPng(Canvas canvas, string filePath)
         {
@@ -314,14 +297,30 @@ namespace Paint
             }
         }
 
-        private void openFileButton_Click_1(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void layersButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
+
+        private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            var picker = sender as Xceed.Wpf.Toolkit.ColorPicker;
+            if (picker.SelectedColor.HasValue)
+            {
+                Color selectedColor = picker.SelectedColor.Value;
+                // Use this color for your drawing logic
+            }
+        }
+
+        private void StrokeTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void PenWidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+
+        }
     }
+
 }
