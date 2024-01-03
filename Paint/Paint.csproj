@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="imgs\edit.png" />
     <None Remove="imgs\layers.png" />
+    <None Remove="imgs\redo.png" />
+    <None Remove="imgs\text.png" />
+    <None Remove="imgs\undo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="imgs\edit.png" />
     <Resource Include="imgs\Ellipse.png" />
     <Resource Include="imgs\folder.png" />
     <Resource Include="imgs\import.png" />
@@ -29,6 +34,18 @@
     <Resource Include="imgs\new-document.png" />
     <Resource Include="imgs\Rectangle.png" />
     <Resource Include="imgs\save.png" />
+    <Resource Include="imgs\text.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="imgs\undo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="imgs\redo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -8,12 +8,14 @@ namespace Paint.Model
         public double PenWidth { get; set; }
         public DoubleCollection StrokeStyle { get; set; }
 
+        public double zoomFactor { get; set; }
         public DrawingAttributes()
         {
             // Set default values
             SelectedColor = Colors.Black;
             PenWidth = 1.0;
             StrokeStyle = new DoubleCollection();
+            zoomFactor = 1.0;
         }
     }
 }

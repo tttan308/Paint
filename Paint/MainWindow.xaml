@@ -1,44 +1,62 @@
 ﻿<Fluent:RibbonWindow x:Class="Paint.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:Fluent="clr-namespace:Fluent;assembly=Fluent"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-        Title="Paint" Height="800" Width="1200"
-        Loaded="Window_Loaded"
-        SizeChanged="RibbonWindow_SizeChanged">
+                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:Fluent="clr-namespace:Fluent;assembly=Fluent"
+                     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+                     Title="Paint"
+                     Height="800"
+                     Width="1200"
+                     Loaded="Window_Loaded"
+                     SizeChanged="RibbonWindow_SizeChanged">
     <Fluent:RibbonWindow.Resources>
         <Style TargetType="Fluent:MenuItem" x:Key="CompactMenuItemStyle">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="FontSize" Value="14" />
         </Style>
     </Fluent:RibbonWindow.Resources>
     <StackPanel>
         <Fluent:Ribbon>
             <Fluent:Ribbon.Menu>
                 <Fluent:ApplicationMenu Header="File" RightPaneWidth="0" FontSize="16">
-                    <Fluent:MenuItem Header="New" Icon="imgs/new-document.png" Name="createNewButton" Click="createNewButton_Click"
-                     Style="{StaticResource CompactMenuItemStyle}"
-                     RenderOptions.BitmapScalingMode="HighQuality"
-                                     InputGestureText="                          Ctrl+N"/>
-                    <Fluent:MenuItem Header="Open" Icon="imgs/folder.png" Name="openFileButton" Click="openFileButton_Click"
-                     Style="{StaticResource CompactMenuItemStyle}"
+                    <Fluent:MenuItem Header="New"
+                                     Icon="imgs/new-document.png"
+                                     Name="createNewButton"
+                                     Click="createNewButton_Click"
+                                     Style="{StaticResource CompactMenuItemStyle}"
                                      RenderOptions.BitmapScalingMode="HighQuality"
-                                     InputGestureText="                         Ctrl+O"/>
-                    <Fluent:MenuItem Header="Save" Icon="imgs/save.png" Name="saveFileButton" Click="saveFileButton_Click"
-                     Style="{StaticResource CompactMenuItemStyle}"                 
+                                     InputGestureText="                          Ctrl+N" />
+                    <Fluent:MenuItem Header="Open"
+                                     Icon="imgs/folder.png"
+                                     Name="openFileButton"
+                                     Click="openFileButton_Click"
+                                     Style="{StaticResource CompactMenuItemStyle}"
                                      RenderOptions.BitmapScalingMode="HighQuality"
-                                     InputGestureText="                        Ctrl+S"/>
-                    <Fluent:MenuItem Header="Import Image" Icon="imgs/import.png" Name="importButton" Click="importImageButton_Click"
-                     Style="{StaticResource CompactMenuItemStyle}"
+                                     InputGestureText="                         Ctrl+O" />
+                    <Fluent:MenuItem Header="Save"
+                                     Icon="imgs/save.png"
+                                     Name="saveFileButton"
+                                     Click="saveFileButton_Click"
+                                     Style="{StaticResource CompactMenuItemStyle}"
                                      RenderOptions.BitmapScalingMode="HighQuality"
-                                     InputGestureText="               Ctrl+I"/>
+                                     InputGestureText="                        Ctrl+S" />
+                    <Fluent:MenuItem Header="Import Image"
+                                     Icon="imgs/import.png"
+                                     Name="importButton"
+                                     Click="importImageButton_Click"
+                                     Style="{StaticResource CompactMenuItemStyle}"
+                                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="               Ctrl+I" />
                 </Fluent:ApplicationMenu>
             </Fluent:Ribbon.Menu>
 
             <Fluent:RibbonTabItem Header="Home" FontSize="16">
                 <Fluent:RibbonGroupBox Header="Shapes">
-                    <ListView Name="iconListView" Width="130" Height="40" Margin="8,8,8,0" SelectionChanged="iconListView_SelectionChanged"
+                    <ListView Name="iconListView"
+                              Width="130"
+                              Height="40"
+                              Margin="8,8,8,0"
+                              SelectionChanged="iconListView_SelectionChanged"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListView.ItemTemplate>
                             <DataTemplate>
@@ -48,13 +66,13 @@
 
                         <ListView.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel/>
+                                <WrapPanel />
                             </ItemsPanelTemplate>
                         </ListView.ItemsPanel>
 
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
-                                <Setter Property="ToolTip" Value="{Binding Name}"/>
+                                <Setter Property="ToolTip" Value="{Binding Name}" />
                             </Style>
                         </ListView.ItemContainerStyle>
                     </ListView>
@@ -62,37 +80,66 @@
                 </Fluent:RibbonGroupBox>
 
                 <Fluent:RibbonGroupBox Header="Tools">
-                    <Fluent:Button Name="undoButton" Header="Undo" Click="UndoButton_Click"/>
-                    <Fluent:Button Name="redoButton" Header="Redo" Click="RedoButton_Click"/>
-                    <Fluent:Button Name="textButton" Header="Text" Click="TextButton_Click"/>
+                    <Fluent:Button Name="undoButton" Header="Undo" Click="UndoButton_Click" Padding="5">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="imgs/undo.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <Fluent:Button Name="redoButton" Header="Redo" Click="RedoButton_Click" Padding="5">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="imgs/redo.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <Fluent:Button Name="textButton" Header="Text" Click="TextButton_Click" Padding="5">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="imgs/text.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <Fluent:Button Name="editMode" Header="Edit" Click="EditMode_Click" Padding="5">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="imgs/edit.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
                 </Fluent:RibbonGroupBox>
 
-                <Fluent:RibbonGroupBox Header="Drawing Tools" Width="500">
+                <Fluent:RibbonGroupBox Header="Drawing Tools" Width="440" Height="97">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
                         <!-- Color Picker -->
                         <StackPanel Margin="5,0">
-                            <Label Content="Choose Color" VerticalAlignment="Center"/>
-                            <xctk:ColorPicker Name="colorPicker" Width="200" Height="30" SelectedColor="#000000" SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
-                        </StackPanel>
-
-                        <!-- Pen Width Selector -->
-                        <StackPanel Margin="5,0">
-                            <Label Content="Pen Width" VerticalAlignment="Center"/>
-                            <Slider Name="penWidthSlider" Minimum="1" Maximum="20" Value="1" TickFrequency="1" TickPlacement="BottomRight" ValueChanged="PenWidthSlider_ValueChanged" Width="100"/>
-                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen"/>
+                            <Label Content="Choose Color" VerticalAlignment="Center" />
+                            <xctk:ColorPicker Name="colorPicker"
+                                              Width="200"
+                                              Height="30"
+                                              SelectedColor="#000000"
+                                              SelectedColorChanged="ColorPicker_SelectedColorChanged" />
                         </StackPanel>
 
                         <!-- Stroke Type Selector -->
                         <StackPanel Margin="5,0">
-                            <Label Content="Stroke Type" VerticalAlignment="Center"/>
+                            <Label Content="Stroke Type" VerticalAlignment="Center" />
                             <ComboBox Name="strokeTypeComboBox" SelectedIndex="0" SelectionChanged="StrokeTypeComboBox_SelectionChanged">
                                 <ComboBoxItem Content="Solid" />
-                                <ComboBoxItem Content="Dash"/>
-                                <ComboBoxItem Content="Dot"/>
-                                <ComboBoxItem Content="Dash Dot"/>
-                                <ComboBoxItem Content="Dash Dot Dot"/>
+                                <ComboBoxItem Content="Dash" />
+                                <ComboBoxItem Content="Dot" />
+                                <ComboBoxItem Content="Dash Dot" />
+                                <ComboBoxItem Content="Dash Dot Dot" />
                             </ComboBox>
+                        </StackPanel>
+
+                        
+                        <!-- Pen Width Selector -->
+                        <StackPanel Margin="5,0">
+                            <Label Content="Pen Width" VerticalAlignment="Center" />
+                            <Slider Name="penWidthSlider"
+                                    Minimum="1"
+                                    Maximum="20"
+                                    Value="1"
+                                    TickFrequency="1"
+                                    TickPlacement="BottomRight"
+                                    ValueChanged="PenWidthSlider_ValueChanged"
+                                    Width="100" />
+                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen" Height="24"/>
                         </StackPanel>
                     </StackPanel>
                 </Fluent:RibbonGroupBox>
@@ -104,12 +151,32 @@
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
                 </Fluent:RibbonGroupBox>
+
+                <Fluent:RibbonGroupBox Header="Zoom">
+                    <StackPanel Margin="5,0">
+                        <Label Content="Zoom Level" VerticalAlignment="Center" />
+                        <Slider Name="zoomSlider"
+                                Minimum="0.1"
+                                Maximum="3"
+                                Value="1"
+                                TickFrequency="0.1"
+                                TickPlacement="BottomRight"
+                                ValueChanged="ZoomSlider_ValueChanged"
+                                Width="100" />
+                        <TextBox Text="{Binding ElementName=zoomSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Zoom: {0:P0}'}" ToolTip="Enter the zoom level" />
+                    </StackPanel>
+                </Fluent:RibbonGroupBox>
             </Fluent:RibbonTabItem>
         </Fluent:Ribbon>
         <Grid>
             <Canvas IsHitTestVisible="False" ClipToBounds="True" Name="drawingCanvas" Background="White"></Canvas>
-            <Canvas Name="canvas" Background="Transparent" MouseDown="Canvas_MouseDown" MouseMove="Canvas_MouseMove" MouseUp="Canvas_MouseUp" Height="670" Width="1200">
-            </Canvas>
+            <Canvas Name="canvas"
+                    Background="Transparent"
+                    MouseDown="Canvas_MouseDown"
+                    MouseMove="Canvas_MouseMove"
+                    MouseUp="Canvas_MouseUp"
+                    Height="670"
+                    Width="1200"></Canvas>
         </Grid>
     </StackPanel>
 </Fluent:RibbonWindow>

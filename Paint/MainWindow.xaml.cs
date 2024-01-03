@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using System.Windows.Media.Imaging;
 using Fluent;
 using Microsoft.Win32;
 using MyLib;
+using Paint.Model;
 
 namespace Paint
 {
@@ -33,9 +35,11 @@ namespace Paint
         System.Windows.Controls.Button _selectedButton = null;
         private Image importedImage = null;
         private bool isSaved = false;
-        private Stack<ICommand> _undoCommands = new Stack<ICommand>();
-        private Stack<ICommand> _redoCommands = new Stack<ICommand>();
+        private Stack<ICommand> _undoStack = new Stack<ICommand>();
+        private Stack<ICommand> _redoStack = new Stack<ICommand>();
         private Model.DrawingAttributes _drawingAttributes = new Model.DrawingAttributes();
+        IShape _selectedShape = null;
+        ScaleTransform scale = new ScaleTransform();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -75,6 +79,9 @@ namespace Paint
             {
                 _choice = abilities[0].Name;
             }
+
+            scale = new ScaleTransform();
+            drawingCanvas.LayoutTransform = scale;
         }
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -84,18 +91,38 @@ namespace Paint
                 Point position = e.GetPosition(canvas);
                 ShowTextInputDialog(position);
             }
+            else if (_isEditMode)
+            {
+                Point position = e.GetPosition(canvas);
+                _selectedShape = _shapes.LastOrDefault(shape => shape.IsHit(position));
+                if (_selectedShape != null)
+                {
+                    _selectedShape.IsSelected = true;
+                    _selectedShape.ShapeColor = _drawingAttributes.SelectedColor;
+                    _selectedShape.PenWidth = _drawingAttributes.PenWidth;
+                    _selectedShape.StrokeStyle = _drawingAttributes.StrokeStyle;
+                }
+                else
+                {
+                    foreach (var shape in _shapes)
+                    {
+                        shape.IsSelected = false;
+                    }
+                }
+                RedrawCanvas();
+            }
             else
             {
                 isDrawing = true;
                 _start = e.GetPosition(drawingCanvas);
 
                 IShape newShape = _factory.Create(_choice);
+                ExecuteCommand(new AddShapeCommand(newShape, _shapes));
 
                 newShape.ShapeColor = _drawingAttributes.SelectedColor;
                 newShape.PenWidth = _drawingAttributes.PenWidth;
                 newShape.StrokeStyle = _drawingAttributes.StrokeStyle;
                 newShape.Points.Add(_start);
-                _shapes.Add(newShape);
 
                 isSaved = false;
             }
@@ -124,7 +151,6 @@ namespace Paint
 
                 RedrawCanvas();
             }
-            
         }
 
         private void RedrawCanvas()
@@ -415,28 +441,56 @@ namespace Paint
         private void ExecuteCommand(ICommand command)
         {
             command.Execute();
-            _undoCommands.Push(command);
-            _redoCommands.Clear();
+            _undoStack.Push(command);
+            _redoStack.Clear();
         }
 
         private void Undo()
         {
-            if (_undoCommands.Count > 0)
+            if (_undoStack.Any())
             {
-                var command = _undoCommands.Pop();
+                ICommand command = _undoStack.Pop();
                 command.Unexecute();
-                _redoCommands.Push(command);
+                _redoStack.Push(command);
+
+                RedrawCanvas();
             }
         }
 
         private void Redo()
         {
-            if (_redoCommands.Count > 0)
+            if (_redoStack.Any())
             {
-                var command = _redoCommands.Pop();
+                ICommand command = _redoStack.Pop();
                 command.Execute();
-                _undoCommands.Push(command);
+                _undoStack.Push(command);
+
+                RedrawCanvas();
             }
+        }
+
+        private void ZoomSlider_ValueChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<double> e
+        )
+        {
+            double zoomFactor = 1.0; // Default value
+            if (e != null)
+            {
+                zoomFactor = e.NewValue;
+            }
+
+            scale.ScaleX = zoomFactor;
+            scale.ScaleY = zoomFactor;
+
+            _drawingAttributes.zoomFactor = zoomFactor;
+        }
+        
+        private bool _isEditMode = false;
+        private void EditMode_Click(object sender, RoutedEventArgs e)
+        {
+            _isEditMode = !_isEditMode;
+
         }
     }
 }
