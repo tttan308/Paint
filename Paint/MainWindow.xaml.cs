@@ -1,19 +1,16 @@
-﻿using MyLib;
-using Fluent;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System;
-using System.Windows;
 using System.Linq;
+using System.Reflection;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Controls;
+using Fluent;
 using Microsoft.Win32;
-using System.Xml.Linq;
-using System.Globalization;
-using System.Windows.Data;
+using MyLib;
 
 namespace Paint
 {
@@ -27,7 +24,6 @@ namespace Paint
             InitializeComponent();
         }
 
-
         ShapeFactory _factory;
         bool isDrawing = false;
         Point _start;
@@ -37,6 +33,10 @@ namespace Paint
         System.Windows.Controls.Button _selectedButton = null;
         private Image importedImage = null;
         private bool isSaved = false;
+        private Stack<ICommand> _undoCommands = new Stack<ICommand>();
+        private Stack<ICommand> _redoCommands = new Stack<ICommand>();
+        private Model.DrawingAttributes _drawingAttributes = new Model.DrawingAttributes();
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var abilities = new List<IShape>();
@@ -67,9 +67,7 @@ namespace Paint
 
             foreach (var ability in abilities)
             {
-                _factory.Prototypes.Add(
-                     ability.Name, ability
-                 );
+                _factory.Prototypes.Add(ability.Name, ability);
             }
             iconListView.ItemsSource = _factory.Prototypes.Values.ToList();
 
@@ -81,15 +79,31 @@ namespace Paint
 
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            isDrawing = true;
-            _start = e.GetPosition(drawingCanvas);
+            if (_isTextMode)
+            {
+                Point position = e.GetPosition(canvas);
+                ShowTextInputDialog(position);
+            }
+            else
+            {
+                isDrawing = true;
+                _start = e.GetPosition(drawingCanvas);
 
-            IShape newShape = _factory.Create(_choice);
-            newShape.Points.Add(_start);
-            _shapes.Add(newShape);
-            isSaved = false;
+                IShape newShape = _factory.Create(_choice);
+
+                newShape.ShapeColor = _drawingAttributes.SelectedColor;
+                newShape.PenWidth = _drawingAttributes.PenWidth;
+                newShape.StrokeStyle = _drawingAttributes.StrokeStyle;
+                newShape.Points.Add(_start);
+                _shapes.Add(newShape);
+
+                isSaved = false;
+            }
         }
-        
+
+        // Create a WriteableBitmap with the same size as the canvas
+        WriteableBitmap buffer = new WriteableBitmap(670, 1200, 96, 96, PixelFormats.Pbgra32, null);
+
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDrawing && _shapes.Any())
@@ -99,17 +113,18 @@ namespace Paint
                 Title = $"{_start.X}, {_start.Y} => {_end.X}, {_end.Y}";
 
                 var currentShape = _shapes.Last();
-                if (currentShape.Points.Count == 2)
+                if (currentShape.Points.Count < 2)
                 {
-                    currentShape.Points[1] = _end;
+                    currentShape.Points.Add(_end);
                 }
                 else
                 {
-                    currentShape.Points.Add(_end);
+                    currentShape.Points[currentShape.Points.Count - 1] = _end;
                 }
 
                 RedrawCanvas();
             }
+            
         }
 
         private void RedrawCanvas()
@@ -131,6 +146,7 @@ namespace Paint
         private void Canvas_MouseUp(object sender, MouseButtonEventArgs e)
         {
             isDrawing = false;
+            drawingCanvas.ReleaseMouseCapture();
             RedrawCanvas();
             if (_selectedButton != null)
             {
@@ -141,7 +157,8 @@ namespace Paint
 
         private bool IsCanvasEmpty()
         {
-            return drawingCanvas.Children.Count == 0 || (drawingCanvas.Children.Count == 1 && importedImage != null);
+            return drawingCanvas.Children.Count == 0
+                || (drawingCanvas.Children.Count == 1 && importedImage != null);
         }
 
         private void doYouWantToSave(object sender, RoutedEventArgs e)
@@ -154,7 +171,11 @@ namespace Paint
             }
             else
             {
-                MessageBoxResult result = MessageBox.Show("Do you want to save the current file?", "Save File", MessageBoxButton.YesNoCancel);
+                MessageBoxResult result = MessageBox.Show(
+                    "Do you want to save the current file?",
+                    "Save File",
+                    MessageBoxButton.YesNoCancel
+                );
                 switch (result)
                 {
                     case MessageBoxResult.Yes:
@@ -175,7 +196,7 @@ namespace Paint
 
         private void createNewButton_Click(object sender, RoutedEventArgs e)
         {
-             doYouWantToSave(sender, e);
+            doYouWantToSave(sender, e);
         }
 
         private void LoadImageToCanvas(string filePath)
@@ -191,29 +212,27 @@ namespace Paint
             drawingCanvas.Children.Clear();
             drawingCanvas.Children.Add(importedImage);
 
-
             var window = GetWindow(this);
             canvas.Width = window.Width;
             canvas.Height = window.Height;
-
         }
 
         private void openFileButton_Click(object sender, RoutedEventArgs e)
         {
-                OpenFileDialog openFileDialog = new OpenFileDialog();
-                openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
 
-                if (openFileDialog.ShowDialog() == true)
-                {
-
-                    if(!isSaved)                    doYouWantToSave(sender, e);
-                    LoadImageToCanvas(openFileDialog.FileName);
-                }
-
+            if (openFileDialog.ShowDialog() == true)
+            {
+                if (!isSaved)
+                    doYouWantToSave(sender, e);
+                LoadImageToCanvas(openFileDialog.FileName);
+            }
             else
             {
                 MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
-            }        }
+            }
+        }
 
         private void SaveCanvasAsPng(Canvas canvas, string filePath)
         {
@@ -223,7 +242,8 @@ namespace Paint
                 (int)canvas.ActualHeight,
                 96d,
                 96d,
-                PixelFormats.Pbgra32);
+                PixelFormats.Pbgra32
+            );
 
             // Tạo một VisualBrush từ Canvas
             VisualBrush visualBrush = new VisualBrush(canvas);
@@ -232,7 +252,11 @@ namespace Paint
             DrawingVisual drawingVisual = new DrawingVisual();
             using (DrawingContext context = drawingVisual.RenderOpen())
             {
-                context.DrawRectangle(visualBrush, null, new Rect(new Point(), new Size(canvas.ActualWidth, canvas.ActualHeight)));
+                context.DrawRectangle(
+                    visualBrush,
+                    null,
+                    new Rect(new Point(), new Size(canvas.ActualWidth, canvas.ActualHeight))
+                );
             }
 
             // Render DrawingVisual vào RenderTargetBitmap
@@ -269,7 +293,8 @@ namespace Paint
         private void importImageButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All Files (*.*)|*.*";
+            openFileDialog.Filter =
+                "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|All Files (*.*)|*.*";
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -278,14 +303,16 @@ namespace Paint
             }
         }
 
-        private void iconListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void iconListView_SelectionChanged(
+            object sender,
+            System.Windows.Controls.SelectionChangedEventArgs e
+        )
         {
             var shape = iconListView.SelectedItem as IShape;
             if (shape != null)
             {
                 _choice = shape.Name;
             }
-
         }
 
         private void RibbonWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -297,30 +324,119 @@ namespace Paint
             }
         }
 
-        private void layersButton_Click(object sender, RoutedEventArgs e)
-        {
+        private void layersButton_Click(object sender, RoutedEventArgs e) { }
 
-        }
-
-        private void ColorPicker_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        private void ColorPicker_SelectedColorChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<Color?> e
+        )
         {
-            var picker = sender as Xceed.Wpf.Toolkit.ColorPicker;
-            if (picker.SelectedColor.HasValue)
+            if (e.NewValue.HasValue)
             {
-                Color selectedColor = picker.SelectedColor.Value;
-                // Use this color for your drawing logic
+                _drawingAttributes.SelectedColor = e.NewValue.Value;
             }
         }
 
         private void StrokeTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            var selectedItem = (e.AddedItems[0] as ComboBoxItem)?.Content.ToString();
+            switch (selectedItem)
+            {
+                case "Dash":
+                    _drawingAttributes.StrokeStyle = new DoubleCollection { 4, 2 };
+                    break;
+                case "Dot":
+                    _drawingAttributes.StrokeStyle = new DoubleCollection { 1, 2 };
+                    break;
+                case "Dash Dot":
+                    _drawingAttributes.StrokeStyle = new DoubleCollection { 4, 2, 1, 2 };
+                    break;
+                case "Dash Dot Dot":
+                    _drawingAttributes.StrokeStyle = new DoubleCollection { 4, 2, 1, 2, 1, 2 };
+                    break;
+                default:
+                    _drawingAttributes.StrokeStyle = null;
+                    break;
+            }
         }
 
-        private void PenWidthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void PenWidthSlider_ValueChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<double> e
+        )
         {
+            _drawingAttributes.PenWidth = e.NewValue;
+        }
 
+        private bool _isTextMode = false;
+
+        private void TextButton_Click(object sender, RoutedEventArgs e)
+        {
+            _isTextMode = true;
+        }
+
+        private void ShowTextInputDialog(Point position)
+        {
+            // Hiển thị hộp thoại để người dùng nhập văn bản
+            var inputDialog = new TextInputDialog("");
+            if (inputDialog.ShowDialog() == true)
+            {
+                string text = inputDialog.EnteredText;
+                AddTextToCanvas(text, position);
+            }
+        }
+
+        private void AddTextToCanvas(string text, Point position)
+        {
+            var textBlock = new TextBlock
+            {
+                Text = text,
+                Foreground = new SolidColorBrush(Colors.Black), // Hoặc màu tự chọn
+                FontSize = 25 // Hoặc kích thước tự chọn
+            };
+
+            Canvas.SetLeft(textBlock, position.X);
+            Canvas.SetTop(textBlock, position.Y);
+            canvas.Children.Add(textBlock);
+
+            _isTextMode = false; // Tắt chế độ vẽ chữ sau khi thêm văn bản
+        }
+
+        private void UndoButton_Click(object sender, RoutedEventArgs e)
+        {
+            Undo();
+        }
+
+        private void RedoButton_Click(object sender, RoutedEventArgs e)
+        {
+            Redo();
+        }
+
+        private void ExecuteCommand(ICommand command)
+        {
+            command.Execute();
+            _undoCommands.Push(command);
+            _redoCommands.Clear();
+        }
+
+        private void Undo()
+        {
+            if (_undoCommands.Count > 0)
+            {
+                var command = _undoCommands.Pop();
+                command.Unexecute();
+                _redoCommands.Push(command);
+            }
+        }
+
+        private void Redo()
+        {
+            if (_redoCommands.Count > 0)
+            {
+                var command = _redoCommands.Pop();
+                command.Execute();
+                _undoCommands.Push(command);
+            }
         }
     }
-
 }

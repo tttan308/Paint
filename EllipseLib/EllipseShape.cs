@@ -29,6 +29,10 @@ namespace EllipseLib
             Canvas.SetLeft(element, left);
             Canvas.SetTop(element, top);
 
+            element.Stroke = new SolidColorBrush(ShapeColor);
+            element.StrokeThickness = PenWidth;
+            element.StrokeDashArray = StrokeStyle;
+
             return element;
         }
 

@@ -58,39 +58,45 @@
                             </Style>
                         </ListView.ItemContainerStyle>
                     </ListView>
+
                 </Fluent:RibbonGroupBox>
 
-                <Fluent:RibbonGroupBox Header="Drawing Tools" Width="490">
+                <Fluent:RibbonGroupBox Header="Tools">
+                    <Fluent:Button Name="undoButton" Header="Undo" Click="UndoButton_Click"/>
+                    <Fluent:Button Name="redoButton" Header="Redo" Click="RedoButton_Click"/>
+                    <Fluent:Button Name="textButton" Header="Text" Click="TextButton_Click"/>
+                </Fluent:RibbonGroupBox>
+
+                <Fluent:RibbonGroupBox Header="Drawing Tools" Width="500">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
 
                         <!-- Color Picker -->
                         <StackPanel Margin="5,0">
                             <Label Content="Choose Color" VerticalAlignment="Center"/>
-                            <xctk:ColorPicker Name="colorPicker" Width="200" Height="30" SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
+                            <xctk:ColorPicker Name="colorPicker" Width="200" Height="30" SelectedColor="#000000" SelectedColorChanged="ColorPicker_SelectedColorChanged"/>
                         </StackPanel>
 
                         <!-- Pen Width Selector -->
                         <StackPanel Margin="5,0">
                             <Label Content="Pen Width" VerticalAlignment="Center"/>
-                            <Slider Name="penWidthSlider" Minimum="1" Maximum="10" TickFrequency="1" TickPlacement="BottomRight" 
-                    ValueChanged="PenWidthSlider_ValueChanged" Width="100"/>
+                            <Slider Name="penWidthSlider" Minimum="1" Maximum="20" Value="1" TickFrequency="1" TickPlacement="BottomRight" ValueChanged="PenWidthSlider_ValueChanged" Width="100"/>
+                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen"/>
                         </StackPanel>
 
                         <!-- Stroke Type Selector -->
                         <StackPanel Margin="5,0">
                             <Label Content="Stroke Type" VerticalAlignment="Center"/>
-                            <ComboBox Name="strokeTypeComboBox" SelectionChanged="StrokeTypeComboBox_SelectionChanged" Width="150">
-                                <ComboBoxItem Content="Solid"/>
+                            <ComboBox Name="strokeTypeComboBox" SelectedIndex="0" SelectionChanged="StrokeTypeComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Solid" />
                                 <ComboBoxItem Content="Dash"/>
                                 <ComboBoxItem Content="Dot"/>
+                                <ComboBoxItem Content="Dash Dot"/>
                                 <ComboBoxItem Content="Dash Dot Dot"/>
                             </ComboBox>
                         </StackPanel>
-
                     </StackPanel>
                 </Fluent:RibbonGroupBox>
-                
-                
+
                 <Fluent:RibbonGroupBox Header="Layers">
                     <Fluent:Button Name="layersButton" Padding="4,4,4,0" Margin="0,0,0,18" Click="layersButton_Click">
                         <Fluent:Button.LargeIcon>
@@ -99,7 +105,6 @@
                     </Fluent:Button>
                 </Fluent:RibbonGroupBox>
             </Fluent:RibbonTabItem>
-            
         </Fluent:Ribbon>
         <Grid>
             <Canvas IsHitTestVisible="False" ClipToBounds="True" Name="drawingCanvas" Background="White"></Canvas>

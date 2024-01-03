@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media;
 
 namespace MyLib
 {
@@ -11,5 +12,9 @@ namespace MyLib
 
         public abstract UIElement Draw();
         public abstract IShape Clone();
+        public Color ShapeColor { get; set; }
+
+        public double PenWidth { get; set; }
+        public DoubleCollection StrokeStyle { get; set; }
     }
 }
