@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
@@ -8,6 +9,7 @@ namespace MyLib
     {
         public abstract string Name { get; }
         public abstract string Icon { get; }
+
         public List<Point> Points { get; set; } = new List<Point>();
 
         public abstract UIElement Draw();
@@ -16,5 +18,11 @@ namespace MyLib
 
         public double PenWidth { get; set; }
         public DoubleCollection StrokeStyle { get; set; }
+
+        public abstract bool IsPointInside(Point point);
+
+        public abstract void Move(double dx, double dy);
+
+        public abstract UIElement DrawWithNewPosition(Point mousePosition);
     }
 }

@@ -47,13 +47,20 @@
                                      Style="{StaticResource CompactMenuItemStyle}"
                                      RenderOptions.BitmapScalingMode="HighQuality"
                                      InputGestureText="               Ctrl+I" />
+                    <Fluent:MenuItem Header="Save Binary"
+                                     Icon="imgs/save.png"
+                                     Name="saveBinaryButton"
+                                     Click="saveBinaryButton_Click"
+                                     Style="{StaticResource CompactMenuItemStyle}"
+                                     RenderOptions.BitmapScalingMode="HighQuality"
+                                     InputGestureText="               Ctrl+B" />
                 </Fluent:ApplicationMenu>
             </Fluent:Ribbon.Menu>
 
             <Fluent:RibbonTabItem Header="Home" FontSize="16">
                 <Fluent:RibbonGroupBox Header="Shapes">
                     <ListView Name="iconListView"
-                              Width="130"
+                              Width="116"
                               Height="40"
                               Margin="8,8,8,0"
                               SelectionChanged="iconListView_SelectionChanged"
@@ -104,8 +111,6 @@
 
                 <Fluent:RibbonGroupBox Header="Drawing Tools" Width="440" Height="97">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                        <!-- Color Picker -->
                         <StackPanel Margin="5,0">
                             <Label Content="Choose Color" VerticalAlignment="Center" />
                             <xctk:ColorPicker Name="colorPicker"
@@ -114,8 +119,6 @@
                                               SelectedColor="#000000"
                                               SelectedColorChanged="ColorPicker_SelectedColorChanged" />
                         </StackPanel>
-
-                        <!-- Stroke Type Selector -->
                         <StackPanel Margin="5,0">
                             <Label Content="Stroke Type" VerticalAlignment="Center" />
                             <ComboBox Name="strokeTypeComboBox" SelectedIndex="0" SelectionChanged="StrokeTypeComboBox_SelectionChanged">
@@ -126,9 +129,6 @@
                                 <ComboBoxItem Content="Dash Dot Dot" />
                             </ComboBox>
                         </StackPanel>
-
-                        
-                        <!-- Pen Width Selector -->
                         <StackPanel Margin="5,0">
                             <Label Content="Pen Width" VerticalAlignment="Center" />
                             <Slider Name="penWidthSlider"
@@ -139,17 +139,9 @@
                                     TickPlacement="BottomRight"
                                     ValueChanged="PenWidthSlider_ValueChanged"
                                     Width="100" />
-                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen" Height="24"/>
+                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen" Height="24" />
                         </StackPanel>
                     </StackPanel>
-                </Fluent:RibbonGroupBox>
-
-                <Fluent:RibbonGroupBox Header="Layers">
-                    <Fluent:Button Name="layersButton" Padding="4,4,4,0" Margin="0,0,0,18" Click="layersButton_Click">
-                        <Fluent:Button.LargeIcon>
-                            <Image Source="imgs/layers.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
-                        </Fluent:Button.LargeIcon>
-                    </Fluent:Button>
                 </Fluent:RibbonGroupBox>
 
                 <Fluent:RibbonGroupBox Header="Zoom">
@@ -169,14 +161,22 @@
             </Fluent:RibbonTabItem>
         </Fluent:Ribbon>
         <Grid>
-            <Canvas IsHitTestVisible="False" ClipToBounds="True" Name="drawingCanvas" Background="White"></Canvas>
+            <Canvas IsHitTestVisible="True" ClipToBounds="True" Name="drawingCanvas" Background="White"></Canvas>
             <Canvas Name="canvas"
                     Background="Transparent"
                     MouseDown="Canvas_MouseDown"
                     MouseMove="Canvas_MouseMove"
                     MouseUp="Canvas_MouseUp"
                     Height="670"
-                    Width="1200"></Canvas>
+                    Width="1200">
+                <Canvas.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy" Click="CopyButton_Click" />
+                        <MenuItem Header="Paste" Click="PasteButton_Click" />
+                        <MenuItem Header="Cut" Click="CutButton_Click" />
+                    </ContextMenu>
+                </Canvas.ContextMenu>
+            </Canvas>
         </Grid>
     </StackPanel>
 </Fluent:RibbonWindow>

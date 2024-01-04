@@ -8,23 +8,34 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="imgs\copy.png" />
+    <None Remove="imgs\cut.png" />
     <None Remove="imgs\edit.png" />
     <None Remove="imgs\layers.png" />
+    <None Remove="imgs\paste.png" />
     <None Remove="imgs\redo.png" />
     <None Remove="imgs\text.png" />
+    <None Remove="imgs\transform_horizontally.png" />
+    <None Remove="imgs\transform_vertically.png" />
     <None Remove="imgs\undo.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1" />
     <PackageReference Include="Fluent.Ribbon" Version="10.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EllipseLib\EllipseLib.csproj" />
     <ProjectReference Include="..\IShape\IShape.csproj" />
+    <ProjectReference Include="..\LineLib\LineLib.csproj" />
+    <ProjectReference Include="..\RectangleLib\RectangleLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="imgs\copy.png" />
+    <Resource Include="imgs\cut.png" />
     <Resource Include="imgs\edit.png" />
     <Resource Include="imgs\Ellipse.png" />
     <Resource Include="imgs\folder.png" />
@@ -32,20 +43,20 @@
     <Resource Include="imgs\layers.png" />
     <Resource Include="imgs\Line.png" />
     <Resource Include="imgs\new-document.png" />
+    <Resource Include="imgs\paste.png" />
     <Resource Include="imgs\Rectangle.png" />
+    <Resource Include="imgs\redo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="imgs\save.png" />
     <Resource Include="imgs\text.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="imgs\transform_horizontally.png" />
+    <Resource Include="imgs\transform_vertically.png" />
     <Resource Include="imgs\undo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="imgs\redo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.IO;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,7 +15,10 @@ using System.Windows.Media.Imaging;
 using Fluent;
 using Microsoft.Win32;
 using MyLib;
+using Newtonsoft.Json;
+using Paint.Converter;
 using Paint.Model;
+
 
 namespace Paint
 {
@@ -40,6 +46,7 @@ namespace Paint
         private Model.DrawingAttributes _drawingAttributes = new Model.DrawingAttributes();
         IShape _selectedShape = null;
         ScaleTransform scale = new ScaleTransform();
+        private Transform _renderTransform;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -84,6 +91,8 @@ namespace Paint
             drawingCanvas.LayoutTransform = scale;
         }
 
+        private Point _lastMousePosition;
+
         private void Canvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (_isTextMode)
@@ -94,22 +103,16 @@ namespace Paint
             else if (_isEditMode)
             {
                 Point position = e.GetPosition(canvas);
-                _selectedShape = _shapes.LastOrDefault(shape => shape.IsHit(position));
-                if (_selectedShape != null)
+
+                foreach (IShape shape in _shapes)
                 {
-                    _selectedShape.IsSelected = true;
-                    _selectedShape.ShapeColor = _drawingAttributes.SelectedColor;
-                    _selectedShape.PenWidth = _drawingAttributes.PenWidth;
-                    _selectedShape.StrokeStyle = _drawingAttributes.StrokeStyle;
-                }
-                else
-                {
-                    foreach (var shape in _shapes)
+                    if (shape.IsPointInside(position))
                     {
-                        shape.IsSelected = false;
+                        _selectedShape = shape;
+                        _lastMousePosition = position;
+                        break;
                     }
                 }
-                RedrawCanvas();
             }
             else
             {
@@ -128,9 +131,6 @@ namespace Paint
             }
         }
 
-        // Create a WriteableBitmap with the same size as the canvas
-        WriteableBitmap buffer = new WriteableBitmap(670, 1200, 96, 96, PixelFormats.Pbgra32, null);
-
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDrawing && _shapes.Any())
@@ -148,6 +148,19 @@ namespace Paint
                 {
                     currentShape.Points[currentShape.Points.Count - 1] = _end;
                 }
+
+                RedrawCanvas();
+            }
+
+            if (_selectedShape != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point position = e.GetPosition(canvas);
+
+                double dx = position.X - _lastMousePosition.X;
+                double dy = position.Y - _lastMousePosition.Y;
+                _selectedShape.Move(dx, dy);
+
+                _lastMousePosition = position;
 
                 RedrawCanvas();
             }
@@ -246,18 +259,37 @@ namespace Paint
         private void openFileButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PNG Files (*.png)|*.png|All Files (*.*)|*.*";
+            openFileDialog.Filter =
+                "PNG Files (*.png)|*.png|Binary Files (*.bin)|*.bin|All Files (*.*)|*.*";
 
             if (openFileDialog.ShowDialog() == true)
             {
                 if (!isSaved)
                     doYouWantToSave(sender, e);
-                LoadImageToCanvas(openFileDialog.FileName);
+                if (openFileDialog.FileName.EndsWith(".png"))
+                {
+                    LoadImageToCanvas(openFileDialog.FileName);
+                }
+                else if (openFileDialog.FileName.EndsWith(".bin"))
+                {
+                    _shapes = LoadShapes(openFileDialog.FileName);
+                    RedrawCanvas();
+                }
             }
             else
             {
                 MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
             }
+            // if (openFileDialog.ShowDialog() == true)
+            // {
+            //     if (!isSaved)
+            //         doYouWantToSave(sender, e);
+            //     LoadImageToCanvas(openFileDialog.FileName);
+            // }
+            // else
+            // {
+            //     MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
+            // }
         }
 
         private void SaveCanvasAsPng(Canvas canvas, string filePath)
@@ -324,7 +356,7 @@ namespace Paint
 
             if (openFileDialog.ShowDialog() == true)
             {
-                doYouWantToSave(sender, e); // Optional: Check if the user wants to save current work
+                doYouWantToSave(sender, e);
                 LoadImageToCanvas(openFileDialog.FileName);
             }
         }
@@ -349,8 +381,6 @@ namespace Paint
                 canvas.Height = e.NewSize.Height;
             }
         }
-
-        private void layersButton_Click(object sender, RoutedEventArgs e) { }
 
         private void ColorPicker_SelectedColorChanged(
             object sender,
@@ -399,17 +429,18 @@ namespace Paint
         private void TextButton_Click(object sender, RoutedEventArgs e)
         {
             _isTextMode = true;
+            textButton.Background = new SolidColorBrush(Colors.LightBlue);
         }
 
         private void ShowTextInputDialog(Point position)
         {
-            // Hiển thị hộp thoại để người dùng nhập văn bản
             var inputDialog = new TextInputDialog("");
             if (inputDialog.ShowDialog() == true)
             {
                 string text = inputDialog.EnteredText;
                 AddTextToCanvas(text, position);
             }
+            textButton.Background = new SolidColorBrush(Colors.Transparent);
         }
 
         private void AddTextToCanvas(string text, Point position)
@@ -417,15 +448,15 @@ namespace Paint
             var textBlock = new TextBlock
             {
                 Text = text,
-                Foreground = new SolidColorBrush(Colors.Black), // Hoặc màu tự chọn
-                FontSize = 25 // Hoặc kích thước tự chọn
+                Foreground = new SolidColorBrush(Colors.Black),
+                FontSize = 25
             };
 
             Canvas.SetLeft(textBlock, position.X);
             Canvas.SetTop(textBlock, position.Y);
             canvas.Children.Add(textBlock);
 
-            _isTextMode = false; // Tắt chế độ vẽ chữ sau khi thêm văn bản
+            _isTextMode = false;
         }
 
         private void UndoButton_Click(object sender, RoutedEventArgs e)
@@ -474,7 +505,7 @@ namespace Paint
             RoutedPropertyChangedEventArgs<double> e
         )
         {
-            double zoomFactor = 1.0; // Default value
+            double zoomFactor = 1.0;
             if (e != null)
             {
                 zoomFactor = e.NewValue;
@@ -485,12 +516,101 @@ namespace Paint
 
             _drawingAttributes.zoomFactor = zoomFactor;
         }
-        
+
         private bool _isEditMode = false;
+
         private void EditMode_Click(object sender, RoutedEventArgs e)
         {
             _isEditMode = !_isEditMode;
+            if (_isEditMode)
+            {
+                editMode.Background = new SolidColorBrush(Colors.LightBlue);
+            }
+            else
+            {
+                editMode.Background = new SolidColorBrush(Colors.Transparent);
+            }
+        }
 
+        private IShape _clipboardShape;
+
+        private void CutButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isEditMode && _selectedShape != null)
+            {
+                _clipboardShape = _selectedShape;
+
+                _shapes.Remove(_selectedShape);
+
+                RedrawCanvas();
+
+                _selectedShape = null;
+            }
+        }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isEditMode && _selectedShape != null)
+            {
+                // Copy the selected shape to the clipboard
+                _clipboardShape = _selectedShape;
+            }
+        }
+
+        private void PasteButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_clipboardShape != null)
+            {
+                Point mousePosition = Mouse.GetPosition(drawingCanvas);
+
+                drawingCanvas.Children.Add(_clipboardShape.DrawWithNewPosition(mousePosition));
+
+                _shapes.Add(_clipboardShape);
+
+                RedrawCanvas();
+            }
+        }
+
+        public void SaveShapes(List<IShape> shapes, string filePath)
+        {
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(shapes, options);
+            File.WriteAllText(filePath, jsonString);
+        }
+
+        public List<IShape> LoadShapes(string filePath)
+        {
+            string jsonString = File.ReadAllText(filePath);
+            return JsonConvert.DeserializeObject<List<IShape>>(
+                jsonString,
+                new JsonSerializerSettings
+                {
+                    Converters = new List<JsonConverter>
+                    {
+                        new ShapeConverter(),
+                        new PointConverterJson(),
+                        new ColorConverterJson()
+                    }
+                }
+            );
+        }
+
+        private void saveBinaryButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!isSaved)
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "Binary Files (*.bin)|*.bin";
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    SaveShapes(_shapes, saveFileDialog.FileName);
+                    isSaved = true;
+                }
+            }
+            else
+            {
+                MessageBox.Show("The file has been saved!", "Save File", MessageBoxButton.OK);
+            }
         }
     }
 }
