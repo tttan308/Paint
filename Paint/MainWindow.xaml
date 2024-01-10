@@ -7,6 +7,7 @@
                      Height="800"
                      Width="1200"
                      Loaded="Window_Loaded"
+                     Icon="/imgs/logo.png"
                      SizeChanged="RibbonWindow_SizeChanged">
     <Fluent:RibbonWindow.Resources>
         <Style TargetType="Fluent:MenuItem" x:Key="CompactMenuItemStyle">
@@ -139,7 +140,7 @@
                                     TickPlacement="BottomRight"
                                     ValueChanged="PenWidthSlider_ValueChanged"
                                     Width="100" />
-                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen" Height="24" />
+                            <TextBox Text="{Binding ElementName=penWidthSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Size: {0:F0}'}" ToolTip="Enter the width of the pen" Height="20" FontSize="11"/>
                         </StackPanel>
                     </StackPanel>
                 </Fluent:RibbonGroupBox>
@@ -155,7 +156,7 @@
                                 TickPlacement="BottomRight"
                                 ValueChanged="ZoomSlider_ValueChanged"
                                 Width="100" />
-                        <TextBox Text="{Binding ElementName=zoomSlider, Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Zoom: {0:P0}'}" ToolTip="Enter the zoom level" />
+                        <TextBox Text="{Binding ElementName=zoomSlider,  Path=Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat='Zoom: {0:P0}'}" ToolTip="Enter the zoom level" FontSize="11"/>
                     </StackPanel>
                 </Fluent:RibbonGroupBox>
             </Fluent:RibbonTabItem>

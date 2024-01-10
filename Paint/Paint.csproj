@@ -12,6 +12,8 @@
     <None Remove="imgs\cut.png" />
     <None Remove="imgs\edit.png" />
     <None Remove="imgs\layers.png" />
+    <None Remove="imgs\logo.png" />
+    <None Remove="imgs\Microsoft-Paint-01.svg" />
     <None Remove="imgs\paste.png" />
     <None Remove="imgs\redo.png" />
     <None Remove="imgs\text.png" />
@@ -42,6 +44,10 @@
     <Resource Include="imgs\import.png" />
     <Resource Include="imgs\layers.png" />
     <Resource Include="imgs\Line.png" />
+    <Resource Include="imgs\logo.png" />
+    <Resource Include="imgs\Microsoft-Paint-01.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="imgs\new-document.png" />
     <Resource Include="imgs\paste.png" />
     <Resource Include="imgs\Rectangle.png" />
